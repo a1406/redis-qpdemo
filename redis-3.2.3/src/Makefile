@@ -18,7 +18,7 @@ OPTIMIZATION?=-O0
 DEPENDENCY_TARGETS=hiredis linenoise lua geohash-int
 
 # Default settings
-STD=-std=c99 -pedantic -DREDIS_STATIC=''
+STD=-std=c99  -DREDIS_STATIC=''
 WARN=-Wall -W
 OPT=$(OPTIMIZATION)
 
