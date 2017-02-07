@@ -4101,7 +4101,10 @@ int main(int argc, char **argv) {
         serverLog(LL_WARNING,"WARNING: You specified a maxmemory value that is less than 1MB (current value is %llu bytes). Are you sure this is what you really want?", server.maxmemory);
     }
 
-	gamesrv_main(argc, argv);
+	if (gamesrv_main(argc, argv) != 0) {
+		serverLog(LL_WARNING,"WARNING: gamesrv_main failed");
+		exit(1);
+	}
 
     aeSetBeforeSleepProc(server.el,beforeSleep);
     aeMain(server.el);
