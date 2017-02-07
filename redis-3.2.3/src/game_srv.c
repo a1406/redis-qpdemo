@@ -1,5 +1,6 @@
 #include "server.h"
 #include "game_include/server_proto.h"
+#include "game_include/conn_node.h"
 #include "anet.h"
 #include "ae.h"
 #include <stdio.h>
@@ -67,7 +68,7 @@ void read_from_connsrv(aeEventLoop *el, int fd, void *privdata, int mask)
 		}
 */		
 		if (ret < 0) {
-			LOG_INFO("%s %d: connect closed from fd %u, err = %d", __FUNCTION__, __LINE__, fd, errno);
+			serverLog(LL_NOTICE, "%s %d: connect closed from fd %u, err = %d", __FUNCTION__, __LINE__, fd, errno);
 //			return (-1);
 /*
 			std::map<uint64_t, player_struct *>::iterator it = player_manager::all_players_id.begin();
