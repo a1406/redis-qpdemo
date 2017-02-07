@@ -55,6 +55,8 @@
 #include <locale.h>
 #include <sys/socket.h>
 
+#include "game_include/game_srv.h"
+
 /* Our shared "common" objects */
 
 struct sharedObjectsStruct shared;
@@ -4098,6 +4100,8 @@ int main(int argc, char **argv) {
     if (server.maxmemory > 0 && server.maxmemory < 1024*1024) {
         serverLog(LL_WARNING,"WARNING: You specified a maxmemory value that is less than 1MB (current value is %llu bytes). Are you sure this is what you really want?", server.maxmemory);
     }
+
+	gamesrv_main(argc, argv);
 
     aeSetBeforeSleepProc(server.el,beforeSleep);
     aeMain(server.el);
