@@ -1,5 +1,7 @@
-#include "conn_node.h"
+#include "server.h"
+#include "game_include/conn_node.h"
 //#include "game_event.h"
+#include <stdint.h>
 #include <errno.h>
 #include <unistd.h>
 #include <assert.h>
@@ -10,7 +12,7 @@ static int pos_begin;
 static int pos_end;
 
 #define MAX_BUF_PER_CLIENT (128 * 1024 - 1 - sizeof(EXTERN_DATA))
-static uint8_t global_send_buf[MAX_BUF_PER_CLIENT + sizeof(EXTERN_DATA)];
+__attribute__((unused)) static uint8_t global_send_buf[MAX_BUF_PER_CLIENT + sizeof(EXTERN_DATA)];
 
 static uint8_t recv_buf[MAX_BUF_PER_CLIENT + sizeof(EXTERN_DATA)];
 
@@ -87,7 +89,7 @@ bool is_full_packet()
 }
 
 //返回0表示接收完毕，返回大于0表示没接收完毕。返回小于零表示断开
-int get_one_buf()
+int get_one_buf(int fd)
 {
 	int ret = -1;
 	PROTO_HEAD *head;
@@ -112,12 +114,12 @@ int get_one_buf()
 
 	ret = recv(fd, buf_tail(), buf_leave(), 0);
 	if (ret == 0) {
-		serverLog(LL_NOTICE, "%s %d %d: recv ret [%d] err [%d] buf[%p] pos_begin[%d] pos_end[%d]", __PRETTY_FUNCTION__, __LINE__, fd, ret, errno, buf, pos_begin, pos_end);
+		serverLog(LL_NOTICE, "%s %d %d: recv ret [%d] err [%d] buf[%p] pos_begin[%d] pos_end[%d]", __PRETTY_FUNCTION__, __LINE__, fd, ret, errno, recv_buf, pos_begin, pos_end);
 		return (-1);
 	}
 	else if (ret < 0) {
 		if (errno != EAGAIN && errno != EINTR) {
-			serverLog(LL_WARNING, "%s %d %d: recv ret [%d] err [%d] buf[%p] pos_begin[%d] pos_end[%d]", __PRETTY_FUNCTION__, __LINE__, fd, ret, errno, buf, pos_begin, pos_end);
+			serverLog(LL_WARNING, "%s %d %d: recv ret [%d] err [%d] buf[%p] pos_begin[%d] pos_end[%d]", __PRETTY_FUNCTION__, __LINE__, fd, ret, errno, recv_buf, pos_begin, pos_end);
 			return (-1);
 		}
 		else {
@@ -157,7 +159,7 @@ int get_one_buf()
 }
 
 //返回0表示正常，返回大于0表示还有包没有处理完, 不会小于0
-int remove_one_buf()
+int remove_one_buf(int fd)
 {
 	PROTO_HEAD *head;
 	int buf_len;
@@ -187,7 +189,7 @@ int remove_one_buf()
 	}
 
 	len = buf_size();
-	memmove(&buf[0], buf_head(), len);
+	memmove(&recv_buf[0], buf_head(), len);
 	pos_begin = 0;
 	pos_end = len;
 
@@ -218,8 +220,19 @@ int remove_one_buf()
 /* 	return -1; */
 /* } */
 
+int buf_size() {
+	return pos_end - pos_begin;
+}
+
 uint8_t * buf_head() {
 	return recv_buf + pos_begin;
+}
+
+uint8_t * buf_tail() {
+	return recv_buf + pos_end;
+}
+int buf_leave() {
+	return MAX_BUF_PER_CLIENT - pos_end;
 }
 
 int get_cmd()
